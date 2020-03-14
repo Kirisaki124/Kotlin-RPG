@@ -12,6 +12,7 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.Viewport
+import com.mygdx.game.Controller.Controller
 import com.mygdx.game.Main
 import com.mygdx.game.Scenes.Hud
 import com.mygdx.game.Sprites.Player
@@ -27,6 +28,7 @@ class PlayScreen(var game: Main) : Screen {
     private val renderer: OrthogonalTiledMapRenderer
     private val world: World
     private val b2dr: Box2DDebugRenderer
+    private val controller: Controller
 
     fun handleInput(delta: Float) {
 //        if (Gdx.input.isTouched()) {
@@ -36,11 +38,19 @@ class PlayScreen(var game: Main) : Screen {
 //            player.b2Body.applyLinearImpulse(new Vector2(0, 4f), player.b2Body.getWorldCenter(), true);
 //
 //        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) && player.b2Body.getLinearVelocity().x <= 2)
-        if (Gdx.input.isTouched)
-            player.b2Body.applyLinearImpulse(Vector2(0.5f, 0f), player.b2Body.worldCenter, true)
+//        if (Gdx.input.isTouched)
+//            player.b2Body.applyLinearImpulse(Vector2(0.5f, 0f), player.b2Body.worldCenter, true)
         //
 //        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) && player.b2Body.getLinearVelocity().x >= -2)
 //            player.b2Body.applyLinearImpulse(new Vector2(0, 0.1f), player.b2Body.getWorldCenter(), true);
+
+        if (controller.isLeftPressed)
+            player.b2Body.applyLinearImpulse(Vector2(-0.5f, 0f), player.b2Body.worldCenter, true)
+        if (controller.isRightPressed)
+            player.b2Body.applyLinearImpulse(Vector2(0.5f, 0f), player.b2Body.worldCenter, true)
+        if (controller.isUpPressed)
+            player.b2Body.applyLinearImpulse(Vector2(0f, 4f), player.b2Body.worldCenter, true)
+
     }
 
     fun update(delta: Float) {
@@ -59,11 +69,13 @@ class PlayScreen(var game: Main) : Screen {
         game.batch.projectionMatrix = hud.stage.camera.combined
         hud.stage.draw()
         renderer.render()
+        controller.draw()
         b2dr.render(world, camera.combined)
     }
 
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height)
+        controller.resize(width, height)
     }
 
     override fun pause() {}
@@ -87,7 +99,7 @@ class PlayScreen(var game: Main) : Screen {
         world = World(Vector2(0f, -10f), true)
         player = Player(world)
         b2dr = Box2DDebugRenderer()
-
+        controller = Controller(game)
         B2WorldCreator(world, map)
     }
 }

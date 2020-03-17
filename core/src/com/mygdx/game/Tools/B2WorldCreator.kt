@@ -13,8 +13,8 @@ class B2WorldCreator(val world: World, val map: TiledMap) {
     private fun init() {
         // 2d Box ground
         //  Ground
-        createBodyAndFixture(1)
         createBodyAndFixture(2)
+        createBodyAndFixture(3)
     }
 
     private fun createBodyAndFixture(layer: Int) {

@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.Screen
 import com.badlogic.gdx.graphics.GL20
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.TextureAtlas
 import com.badlogic.gdx.maps.tiled.TiledMap
 import com.badlogic.gdx.maps.tiled.TmxMapLoader
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
@@ -29,34 +30,27 @@ class PlayScreen(var game: Main) : Screen {
     private val world: World
     private val b2dr: Box2DDebugRenderer
     private val controller: Controller
+    var atlas: TextureAtlas = TextureAtlas("Dino.pack")
 
     fun handleInput(delta: Float) {
-//        if (Gdx.input.isTouched()) {
-//            camera.position.x += 100 * delta;
-//        }
-//        if (Gdx.input.isKeyJustPressed(Input.Keys.UP))
-//            player.b2Body.applyLinearImpulse(new Vector2(0, 4f), player.b2Body.getWorldCenter(), true);
-//
-//        if (Gdx.input.isKeyJustPressed(Input.Keys.RIGHT) && player.b2Body.getLinearVelocity().x <= 2)
-//        if (Gdx.input.isTouched)
-//            player.b2Body.applyLinearImpulse(Vector2(0.5f, 0f), player.b2Body.worldCenter, true)
-        //
-//        if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) && player.b2Body.getLinearVelocity().x >= -2)
-//            player.b2Body.applyLinearImpulse(new Vector2(0, 0.1f), player.b2Body.getWorldCenter(), true);
-
         if (controller.isLeftPressed)
-            player.b2Body.applyLinearImpulse(Vector2(-0.5f, 0f), player.b2Body.worldCenter, true)
+            player.b2Body.applyLinearImpulse(Vector2(-10f, 0f), player.b2Body.worldCenter, true)
         if (controller.isRightPressed)
-            player.b2Body.applyLinearImpulse(Vector2(0.5f, 0f), player.b2Body.worldCenter, true)
-        if (controller.isUpPressed)
-            player.b2Body.applyLinearImpulse(Vector2(0f, 4f), player.b2Body.worldCenter, true)
+            player.b2Body.applyLinearImpulse(Vector2(10f, 0f), player.b2Body.worldCenter, true)
+        if (controller.isUpPressed){
+            player.jump()
+            player.b2Body.applyLinearImpulse(Vector2(0f, 20f), player.b2Body.worldCenter, true)
+        }
+
 
     }
+
 
     fun update(delta: Float) {
         handleInput(delta)
         world.step(1 / 60f, 6, 2)
         camera.position.x = player.b2Body.position.x
+        player.update(delta)
         camera.update()
         renderer.setView(camera)
     }
@@ -64,9 +58,16 @@ class PlayScreen(var game: Main) : Screen {
     override fun show() {}
     override fun render(delta: Float) {
         update(delta)
+
         Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
-        game.batch.projectionMatrix = hud.stage.camera.combined
+
+//        game.batch.projectionMatrix = hud.stage.camera.combined
+        game.batch.projectionMatrix = camera.combined
+        game.batch.begin()
+        player.draw(game.batch)
+        game.batch.end()
+
         hud.stage.draw()
         renderer.render()
         controller.draw()
@@ -90,14 +91,14 @@ class PlayScreen(var game: Main) : Screen {
     }
 
     init {
-        viewport = FitViewport(Main.V_WIDTH.toFloat(), Main.V_HEIGHT.toFloat(), camera)
+        viewport = FitViewport(Main.V_WIDTH.toFloat(), Main.V_HEIGHT.toFloat(), camera) as Viewport
         hud = Hud(game.batch)
         mapLoader = TmxMapLoader()
         map = mapLoader.load("lv1.tmx")
         renderer = OrthogonalTiledMapRenderer(map)
         camera.position[viewport.worldWidth / 2, viewport.worldHeight / 2] = 0f
-        world = World(Vector2(0f, -10f), true)
-        player = Player(world)
+        world = World(Vector2(0f, -80f), true)
+        player = Player(world, this)
         b2dr = Box2DDebugRenderer()
         controller = Controller(game)
         B2WorldCreator(world, map)

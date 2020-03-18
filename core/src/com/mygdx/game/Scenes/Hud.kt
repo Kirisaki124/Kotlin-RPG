@@ -11,16 +11,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.Disposable
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.Viewport
-import com.mygdx.game.Main
+import com.mygdx.game.MainGame
 
 class Hud(sb: SpriteBatch) : Disposable {
-    @JvmField
     var stage: Stage
-    var viewport: Viewport
-    var name: Label
+    private var viewport: Viewport = FitViewport(MainGame.V_WIDTH.toFloat(), MainGame.V_HEIGHT.toFloat(), OrthographicCamera())
+    private var name: Label
 
     init {
-        viewport = FitViewport(Main.V_WIDTH.toFloat(), Main.V_HEIGHT.toFloat(), OrthographicCamera())
         stage = Stage(viewport, sb)
         val table = Table()
         table.top()

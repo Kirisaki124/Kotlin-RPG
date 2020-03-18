@@ -4,7 +4,7 @@ import com.badlogic.gdx.Game
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.mygdx.game.Screens.PlayScreen
 
-class Main : Game() {
+class MainGame : Game() {
     lateinit var batch: SpriteBatch
     override fun create() {
         batch = SpriteBatch()
@@ -16,8 +16,8 @@ class Main : Game() {
     }
 
     companion object {
-        const val PPM = 100
-        var V_WIDTH = 400
-        var V_HEIGHT = 208
+        const val PIXEL_PER_METER = 100
+        const val V_WIDTH = 400
+        const val V_HEIGHT = 208
     }
 }

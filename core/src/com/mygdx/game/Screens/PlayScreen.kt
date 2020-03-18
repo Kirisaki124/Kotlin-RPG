@@ -13,94 +13,103 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.Viewport
-import com.mygdx.game.Controller.Controller
-import com.mygdx.game.Main
+import com.mygdx.game.Controller.OnScreenController
+import com.mygdx.game.MainGame
 import com.mygdx.game.Scenes.Hud
 import com.mygdx.game.Sprites.Player
 import com.mygdx.game.Tools.B2WorldCreator
+import com.mygdx.game.Tools.drawSprite
 
-class PlayScreen(var game: Main) : Screen {
+class PlayScreen(var game: MainGame) : Screen {
+    private val mapLoader: TmxMapLoader = TmxMapLoader()
+    private val tiledMap: TiledMap
+    private val mapRenderer: OrthogonalTiledMapRenderer
+    val textureAtlas: TextureAtlas = TextureAtlas("Dino.pack")
+
     private var camera: OrthographicCamera = OrthographicCamera()
     private var viewport: Viewport
-    private var hud: Hud
-    val player: Player
-    private val mapLoader: TmxMapLoader
-    private val map: TiledMap
-    private val renderer: OrthogonalTiledMapRenderer
-    private val world: World
+
     private val b2dr: Box2DDebugRenderer
-    private val controller: Controller
-    var atlas: TextureAtlas = TextureAtlas("Dino.pack")
 
-    fun handleInput(delta: Float) {
-        if (controller.isLeftPressed)
-            player.b2Body.applyLinearImpulse(Vector2(-10f, 0f), player.b2Body.worldCenter, true)
-        if (controller.isRightPressed)
-            player.b2Body.applyLinearImpulse(Vector2(10f, 0f), player.b2Body.worldCenter, true)
-        if (controller.isUpPressed){
-            player.jump()
-            player.b2Body.applyLinearImpulse(Vector2(0f, 20f), player.b2Body.worldCenter, true)
-        }
+    private var hud: Hud
+    private val world: World
 
+    private val player: Player
+    private val onScreenController: OnScreenController
 
+    init {
+        tiledMap = mapLoader.load("lv1.tmx")
+        mapRenderer = OrthogonalTiledMapRenderer(tiledMap)
+
+        viewport = FitViewport(MainGame.V_WIDTH.toFloat(), MainGame.V_HEIGHT.toFloat(), camera)
+        camera.position[viewport.worldWidth / 2, viewport.worldHeight / 2] = 0f
+        b2dr = Box2DDebugRenderer()
+        hud = Hud(game.batch)
+
+        world = World(Vector2(0f, -80f), true)
+        player = Player(world, this)
+        onScreenController = OnScreenController(game)
+
+        B2WorldCreator(world, tiledMap)
     }
 
+    private fun handleInput(delta: Float) {
+        if (onScreenController.isLeftPressed || onScreenController.isRightPressed) {
+            player.moveHorizontal(onScreenController.isLeftPressed)
+        } else if (onScreenController.isUpPressed) {
+            player.jump()
+        }
+    }
 
-    fun update(delta: Float) {
+    private fun updateWorldStatus(delta: Float) {
         handleInput(delta)
         world.step(1 / 60f, 6, 2)
+        // Attach camera to player
         camera.position.x = player.b2Body.position.x
+
         player.update(delta)
         camera.update()
-        renderer.setView(camera)
+        // Draw only visible part of the world
+        mapRenderer.setView(camera)
     }
 
-    override fun show() {}
     override fun render(delta: Float) {
-        update(delta)
-
-        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
+        updateWorldStatus(delta)
+        clearScreen()
 
 //        game.batch.projectionMatrix = hud.stage.camera.combined
         game.batch.projectionMatrix = camera.combined
         game.batch.begin()
-        player.draw(game.batch)
+        game.batch.drawSprite(player)
         game.batch.end()
 
         hud.stage.draw()
-        renderer.render()
-        controller.draw()
+        mapRenderer.render()
+        onScreenController.draw()
+        // Debug purposes
         b2dr.render(world, camera.combined)
     }
 
     override fun resize(width: Int, height: Int) {
         viewport.update(width, height)
-        controller.resize(width, height)
+        onScreenController.resize(width, height)
     }
 
-    override fun pause() {}
-    override fun resume() {}
-    override fun hide() {}
     override fun dispose() {
-        map.dispose()
-        renderer.dispose()
+        tiledMap.dispose()
+        mapRenderer.dispose()
         world.dispose()
         b2dr.dispose()
         hud.dispose()
     }
 
-    init {
-        viewport = FitViewport(Main.V_WIDTH.toFloat(), Main.V_HEIGHT.toFloat(), camera) as Viewport
-        hud = Hud(game.batch)
-        mapLoader = TmxMapLoader()
-        map = mapLoader.load("lv1.tmx")
-        renderer = OrthogonalTiledMapRenderer(map)
-        camera.position[viewport.worldWidth / 2, viewport.worldHeight / 2] = 0f
-        world = World(Vector2(0f, -80f), true)
-        player = Player(world, this)
-        b2dr = Box2DDebugRenderer()
-        controller = Controller(game)
-        B2WorldCreator(world, map)
+    private fun clearScreen() {
+        Gdx.gl.glClearColor(0f, 0f, 0f, 1f)
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT)
     }
+
+    override fun pause() {}
+    override fun resume() {}
+    override fun hide() {}
+    override fun show() {}
 }

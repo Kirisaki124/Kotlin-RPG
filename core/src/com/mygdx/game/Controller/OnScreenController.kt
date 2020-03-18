@@ -10,17 +10,18 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image
 import com.badlogic.gdx.scenes.scene2d.ui.Table
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.badlogic.gdx.utils.viewport.Viewport
-import com.mygdx.game.Main
-import com.mygdx.game.Main.Companion.V_HEIGHT
-import com.mygdx.game.Main.Companion.V_WIDTH
+import com.mygdx.game.MainGame
+import com.mygdx.game.MainGame.Companion.V_HEIGHT
+import com.mygdx.game.MainGame.Companion.V_WIDTH
 
-class Controller(game: Main) {
-    var viewport: Viewport
-    var stage: Stage
+class OnScreenController(game: MainGame) {
+    private var viewport: Viewport
+    private var stage: Stage
+    private var camera: OrthographicCamera = OrthographicCamera()
+
     var isUpPressed = false
     var isLeftPressed = false
     var isRightPressed = false
-    var camera: OrthographicCamera
 
     fun draw() {
         stage.draw()
@@ -31,7 +32,6 @@ class Controller(game: Main) {
     }
 
     init {
-        camera = OrthographicCamera()
         viewport = FitViewport(V_WIDTH.toFloat(), V_HEIGHT.toFloat(), camera)
         stage = Stage(viewport, game.batch)
         Gdx.input.inputProcessor = stage
